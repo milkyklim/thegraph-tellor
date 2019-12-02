@@ -1,0 +1,25 @@
+specVersion: 0.0.2
+description:
+repository: https://github.com/milkyklim/thegraph-tellor
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: Tellor
+    network: mainnet
+    source:
+      address: '0x0Ba45A8b5d5575935B8158a88C631E9F9C95a2e5'
+      abi: Tellor
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.3
+      language: wasm/assemblyscript
+      entities:
+        - Transfer
+      abis:
+        - name: Tellor
+          file: ./abis/Tellor.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+      file: ./src/mapping.ts
