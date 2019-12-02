@@ -1,3 +1,8 @@
+# milkyklim
+generated
+build
+bin
+
 # Logs
 logs
 *.log
