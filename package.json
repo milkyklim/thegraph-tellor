@@ -1,4 +1,8 @@
 {
+  "name": "thegraph-tellor",
+  "version": "0.1.0",
+  "author": "milkyklim",
+  "license": "GPLv3",
   "dependencies": {
     "@graphprotocol/graph-cli": "^0.16.2"
   }
