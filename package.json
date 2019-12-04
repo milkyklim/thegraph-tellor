@@ -2,7 +2,7 @@
   "name": "thegraph-tellor",
   "version": "0.1.0",
   "author": "milkyklim",
-  "license": "GPLv3",
+  "license": "GPL-3.0-only",
   "dependencies": {
     "@graphprotocol/graph-cli": "^0.16.2"
   }
