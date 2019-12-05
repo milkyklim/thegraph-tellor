@@ -10,7 +10,7 @@ dataSources:
     source:
       address: '0x0Ba45A8b5d5575935B8158a88C631E9F9C95a2e5'
       abi: Tellor
-      startBlock: 8265522
+      startBlock: 8265521
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.3
@@ -29,4 +29,8 @@ dataSources:
           handler: handleStakeWithdrawn
         - event: StakeWithdrawRequested(indexed address)
           handler: handleStakeWithdrawRequested
+        - event: NewDispute(indexed uint256,indexed uint256,uint256,address)
+          handler: handleNewDispute
+        - event: DisputeVoteTallied(indexed uint256,int256,indexed address,address,bool)
+          handler: handleDisputeVoteTallied
       file: ./src/mapping.ts

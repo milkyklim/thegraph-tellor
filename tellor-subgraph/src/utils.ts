@@ -9,6 +9,9 @@ export function rightPad(str: String, size: i32): String {
   return str
 }
 
+export let BIGINT_ONE = BigInt.fromI32(1)
+export let BIGINT_ZERO = BigInt.fromI32(0)
+
 // make a derived ID from tx and logIndex
 export function createId(tx: Bytes, logIndex: BigInt): String {
   return rightPad(logIndex.toHex(), 40) + '-' + tx.toHex()

@@ -43,23 +43,23 @@ type Miner @entity {
 }
 
 interface Vote {
-  "Equals to: <Dispute ID>-<Voter's Address>"
+  "Equals to: <Dispute ID>-<Voter's address>"
   id: ID!
-  "Voters's Address"
+  "Voters's address"
   voter: Bytes!
   "Vote in the dispute"
   vote: BigInt!
   "Transaction info"
   transaction: Transaction!
-  # TODO: this can be extended properly with 'union' but it is not supported by thegraph
+  # TODO: this can be extended with 'union' but it is not supported yet
   # "Dispute related to this vote"
   # dispute: Dispute!
 }
 
 type SlashVote implements Vote @entity {
-  "Equals to: <Dispute ID>-<Voter's Address>"
+  "Equals to: <Dispute ID>-<Voter's address>"
   id: ID!
-  "Voters's Address"
+  "Voters's address"
   voter: Bytes!
   "Vote in the dispute"
   vote: BigInt!
@@ -71,9 +71,9 @@ type SlashVote implements Vote @entity {
 }
 
 type ForkVote implements Vote @entity {
-  "Equals to: <Dispute ID>-<Voter's Address>"
+  "Equals to: <Dispute ID>-<Voter's address>"
   id: ID!
-  "Voters's Address"
+  "Voters's address"
   voter: Bytes!
   "Vote in the dispute"
   vote: BigInt!
