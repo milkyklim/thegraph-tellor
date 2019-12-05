@@ -23,4 +23,10 @@ dataSources:
       eventHandlers:
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleTransfer
+        - event: NewStake(indexed address)
+          handler: handleNewStake
+        - event: StakeWithdrawn(indexed address)
+          handler: handleStakeWithdrawn
+        - event: StakeWithdrawRequested(indexed address)
+          handler: handleStakeWithdrawRequested
       file: ./src/mapping.ts

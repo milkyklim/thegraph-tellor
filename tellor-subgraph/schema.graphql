@@ -1,7 +1,21 @@
-type Transfer @entity {
+# make a separate entity in case people want to extend it
+type Block @entity {
+  "Hash"
   id: ID!
-  blockNumber: BigInt!
-  transactionHash: Bytes!
+  number: BigInt!
+  timestamp: BigInt!
+}
+
+type Transaction @entity {
+  "Hash"
+  id: ID!
+  block: Block!
+}
+
+type Transfer @entity {
+  "Equals to: <Log Index>-<Transaction Hash>"
+  id: ID!
+  transaction: Transaction!
   from: Bytes!
   to: Bytes!
   amount: BigInt!
@@ -12,15 +26,20 @@ enum DisputeRole {
   Suspect
 }
 
+enum MinerStatus {
+  NOT_STAKED
+  STAKED
+  LOCKED_FOR_WITHDRAW
+  ON_DISPUTE
+}
+
 type Miner @entity {
-  # address is the unique id
+  "Address"
   id: ID!
-  address: Bytes!
-  # start date
-  "Date when miner joined"
-  timestamp: BigInt!
-  # 0 = Not Staked, 1 = Staked, 2 = Locked For Withdraw 3 = On Dispute
-  status: Int!
+  "Last transaction info"
+  transaction: Transaction!
+  # NOT_STAKED, STAKED, LOCKED_FOR_WITHDRAW, ON_DISPUTE,
+  status: MinerStatus!
 }
 
 interface Vote {
@@ -30,12 +49,9 @@ interface Vote {
   voter: Bytes!
   "Vote in the dispute"
   vote: BigInt!
-  "Block number of the Vote"
-  blockNumber: BigInt!
-  "Transaction hash (tx)"
-  transactionHash: Bytes!
-  "Vote timestamp as seconds (time)"
-  timestamp: BigInt!
+  "Transaction info"
+  transaction: Transaction!
+  # TODO: this can be extended properly with 'union' but it is not supported by thegraph
   # "Dispute related to this vote"
   # dispute: Dispute!
 }
@@ -47,12 +63,8 @@ type SlashVote implements Vote @entity {
   voter: Bytes!
   "Vote in the dispute"
   vote: BigInt!
-  "Block number of the Vote"
-  blockNumber: BigInt!
-  "Transaction hash (tx)"
-  transactionHash: Bytes!
-  "Vote timestamp as seconds (time)"
-  timestamp: BigInt!
+  "Transaction info"
+  transaction: Transaction!
 
   # "Dispute related to this vote"
   dispute: Slash!
@@ -65,12 +77,8 @@ type ForkVote implements Vote @entity {
   voter: Bytes!
   "Vote in the dispute"
   vote: BigInt!
-  "Block number of the Vote"
-  blockNumber: BigInt!
-  "Transaction hash (tx)"
-  transactionHash: Bytes!
-  "Vote timestamp as seconds (time)"
-  timestamp: BigInt!
+  "Transaction info"
+  transaction: Transaction!
 
   # "Dispute related to this vote"
   dispute: Fork!
@@ -100,9 +108,8 @@ interface Dispute {
   # Voting power comes from balance snapshot at this block
   "Block number when the reported value was submitted"
   blockNumber: BigInt!
-
   # generated
-  votes: [Vote!] @derivedFrom(field: "dispute")
+  # votes: [Vote!] @derivedFrom(field: "dispute")
 
   # FIXME: everything below can be generated
   # TODO: should be derived mutation
@@ -144,7 +151,6 @@ type Slash implements Dispute @entity {
   blockNumber: BigInt!
   # generated
   votes: [SlashVote!] @derivedFrom(field: "dispute")
-
   "Request id of the disputed value"
   requestId: Int!
   "Timestamp of the disputed value"
