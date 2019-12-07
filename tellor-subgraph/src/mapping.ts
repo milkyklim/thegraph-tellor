@@ -6,9 +6,10 @@ import {
   StakeWithdrawn,
   StakeWithdrawRequested,
   Transfer as TransferEvent,
+  Tellor,
 } from '../generated/Tellor/Tellor'
 import { Block, Miner, Transaction, Transfer, Slash } from '../generated/schema'
-import { createBlock, createTransaction, createId, BIGINT_ZERO } from './utils'
+import { createBlock, createTransaction, createId, BIGINT_ZERO, stringToUTF8 } from './utils'
 import { ByteArray, crypto, Bytes, log, Address } from '@graphprotocol/graph-ts'
 
 // DISPUTES
@@ -92,6 +93,9 @@ export function handleStakeWithdrawRequested(event: StakeWithdrawRequested): voi
 }
 
 export function handleNewDispute(event: NewDispute): void {
+  // bind to contract to read the state
+  let contract = Tellor.bind(event.address)
+
   let block = createBlock(event.block)
   let transaction = createTransaction(event.transaction, event.block)
 
@@ -117,29 +121,19 @@ export function handleNewDispute(event: NewDispute): void {
   let disputeId = event.params._disputeId
   let slash = new Slash(disputeId.toString())
 
-  // slash.disputeId = disputeId
-  // FIXME: fix
-  // slash.hash = event.params._miner // hash as Bytes
   slash.finalized = false
-  slash.winner = null
-  // FIXME: fix
   slash.reporter = event.transaction.from.toHex()
-  // FIXME: fix
-  slash.suspect = miner.id
-  // FIXME: update this one to the correct value
-  slash.fee = BIGINT_ZERO
-  // FIXME: update this one to the correct value
-  slash.endDate = BIGINT_ZERO
-  // FIXME: update this one to the correct value
-  slash.blockNumber = BIGINT_ZERO
-  // FIXME: update this one to the correct value
-  // slash.votes = null
+  slash.suspect = id
   slash.requestId = event.params._requestId
   slash.timestamp = event.params._timestamp
-  // FIXME: update this one to the correct value
-  slash.value = BIGINT_ZERO
-  // FIXME: update this one to the correct value
-  slash.minerSlot = BIGINT_ZERO
+  // restore values from storage
+  slash.fee = contract.getDisputeUintVars(disputeId, crypto.keccak256(stringToUTF8('fee')) as Bytes)
+  slash.endDate = contract.getDisputeUintVars(disputeId, crypto.keccak256(stringToUTF8('minExecutionDate')) as Bytes)
+  slash.blockNumber = contract.getDisputeUintVars(disputeId, crypto.keccak256(stringToUTF8('blockNumber')) as Bytes)
+  slash.value = contract.getDisputeUintVars(disputeId, crypto.keccak256(stringToUTF8('value')) as Bytes)
+  slash.minerSlot = contract.getDisputeUintVars(disputeId, crypto.keccak256(stringToUTF8('minerSlot')) as Bytes)
+  // not decided yet
+  slash.winner = null
 
   slash.save()
 }

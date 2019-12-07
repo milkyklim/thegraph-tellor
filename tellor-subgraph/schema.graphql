@@ -96,9 +96,9 @@ interface Dispute {
   "Whether the dispute ended in favor of Reporter or Suspect"
   winner: DisputeRole # can be null if not finished
   "Reporter who opened the dispute"
-  reporter: Miner # TODO: !
+  reporter: Miner!
   "The miner who is disputed (self in case of fork)"
-  suspect: Miner # TODO: !
+  suspect: Miner!
   "Reporter deposit"
   fee: BigInt!
   # Disputes last for exactly 7 days
@@ -138,9 +138,9 @@ type Slash implements Dispute @entity {
   "Whether the dispute ended in favor of Reporter or Suspect"
   winner: DisputeRole # can be null if not finished
   "Reporter who opened the dispute"
-  reporter: Miner # TODO: !
+  reporter: Miner!
   "The miner who is disputed (self in case of fork)"
-  suspect: Miner # TODO: !
+  suspect: Miner!
   "Reporter deposit"
   fee: BigInt!
   # Disputes last for exactly 7 days
