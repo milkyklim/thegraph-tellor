@@ -3,12 +3,13 @@ import {
   DisputeVoteTallied,
   NewDispute,
   NewStake,
+  ProposeForkCall,
   StakeWithdrawn,
   StakeWithdrawRequested,
   Transfer as TransferEvent,
   Tellor,
 } from '../generated/Tellor/Tellor'
-import { Block, Miner, Transaction, Transfer, Slash } from '../generated/schema'
+import { Block, Miner, Fork, Transaction, Transfer, Slash } from '../generated/schema'
 import { createBlock, createTransaction, createId, BIGINT_ZERO, stringToUTF8 } from './utils'
 import { ByteArray, crypto, Bytes, log, Address } from '@graphprotocol/graph-ts'
 
@@ -37,8 +38,6 @@ export function handleVoted(): void {
   //   "name": "_voter",
   //   "type
 }
-
-export function handleBeginDipsute(call: BeginDisputeCall): void {}
 
 // MINERS
 
@@ -112,11 +111,7 @@ export function handleNewDispute(event: NewDispute): void {
     miner.save()
   }
 
-  // TODO: probably add logic to track new disputes here
-
-  // IMP: there is a bug in smart contract that doesn't emit
-  // events for fork proposals I skip this for now and wait
-  // for the_fett to fix this problem
+  // slash disputes logic here
 
   let disputeId = event.params._disputeId
   let slash = new Slash(disputeId.toString())
@@ -160,6 +155,42 @@ export function handleDisputeVoteTallied(event: DisputeVoteTallied): void {
   }
 
   // TODO: probably add logic to track voting here
+}
+
+export function handleProposeFork(call: ProposeForkCall): void {
+  // bind to contract to read the state
+  let contract = Tellor.bind(call.to) // TODO: check that this is valid call.to
+
+  let block = createBlock(call.block)
+  let transaction = createTransaction(call.transaction, call.block)
+
+  let id = call.transaction.from.toHex()
+  let miner = Miner.load(id)
+  // TODO: should never be the case
+  if (miner != null) {
+    miner.transaction = transaction.id
+    miner.status = 'ON_DISPUTE'
+    if (Block.load(block.id) == null) {
+      block.save()
+    }
+    transaction.save()
+    miner.save()
+  }
+
+  let disputeId = contract.getUintVar(crypto.keccak256(stringToUTF8('disputeCount')) as Bytes)
+  let fork = new Fork(disputeId.toString())
+
+  fork.finalized = false
+  fork.reporter = id
+  fork.suspect = id
+
+  fork.forkAddress = call.inputs._propNewTellorAddress
+
+  fork.fee = contract.getDisputeUintVars(disputeId, crypto.keccak256(stringToUTF8('fee')) as Bytes)
+  fork.endDate = contract.getDisputeUintVars(disputeId, crypto.keccak256(stringToUTF8('minExecutionDate')) as Bytes)
+  fork.blockNumber = contract.getDisputeUintVars(disputeId, crypto.keccak256(stringToUTF8('blockNumber')) as Bytes)
+
+  fork.save()
 }
 
 // TRANSFERS

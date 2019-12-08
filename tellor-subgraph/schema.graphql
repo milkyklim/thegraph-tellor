@@ -163,48 +163,49 @@ type Slash implements Dispute @entity {
 
 # TODO: this part is not supported yet cause there is a bug
 # in the contract => proposeFork doesn't emit newDispute event
-# type ForkVote implements Vote @entity {
-#   "Equals to: <Dispute ID>-<Voter's address>"
-#   id: ID!
-#   "Voters's address"
-#   voter: Bytes!
-#   "Vote in the dispute"
-#   vote: BigInt!
-#   "Transaction info"
-#   transaction: Transaction!
+type ForkVote implements Vote @entity {
+  "Equals to: <Dispute ID>-<Voter's address>"
+  id: ID!
+  "Voters's address"
+  voter: Bytes!
+  "Vote in the dispute"
+  vote: BigInt!
+  "Transaction info"
+  transaction: Transaction!
 
-#   # "Dispute related to this vote"
-#   dispute: Fork!
-# }
+  # "Dispute related to this vote"
+  dispute: Fork!
+}
 
 # TODO: this part is not supported yet cause there is a bug
 # in the contract => proposeFork doesn't emit newDispute event
-# type Fork implements Dispute @entity {
-#   "Dispute id"
-#   id: ID!
-#   "Actual dispute id in smart contract"
-#   disputeId: BigInt!
-#   "Dispute hash: keccak256(miner+request_id+timestamp)"
-#   hash: Bytes!
-#   "Whether the dispute has been finalized"
-#   finalized: Boolean!
-#   "Whether the dispute ended in favor of Reporter or Suspect"
-#   winner: DisputeRole # can be null if not finished
-#   "Reporter who opened the dispute"
-#   reporter: Miner!
-#   "The miner who is disputed (self in case of fork)"
-#   suspect: Miner!
-#   "Reporter deposit"
-#   fee: BigInt!
-#   # Disputes last for exactly 7 days
-#   "Date when votes can be tallied"
-#   endDate: BigInt!
-#   # Voting power comes from balance snapshot at this block
-#   "Block number when the reported value was submitted"
-#   blockNumber: BigInt!
-#   # generated
-#   votes: [ForkVote!] @derivedFrom(field: "dispute")
+type Fork implements Dispute @entity {
+  # "Dispute id"
+  "Actual dispute id in smart contract"
+  id: ID!
+  # "Actual dispute id in smart contract"
+  # disputeId: BigInt!
+  # "Dispute hash: keccak256(miner+request_id+timestamp)"
+  # hash: Bytes!
+  "Whether the dispute has been finalized"
+  finalized: Boolean!
+  "Whether the dispute ended in favor of Reporter or Suspect"
+  winner: DisputeRole # can be null if not finished
+  "Reporter who opened the dispute"
+  reporter: Miner!
+  "The miner who is disputed (self in case of fork)"
+  suspect: Miner!
+  "Reporter deposit"
+  fee: BigInt!
+  # Disputes last for exactly 7 days
+  "Date when votes can be tallied"
+  endDate: BigInt!
+  # Voting power comes from balance snapshot at this block
+  "Block number when the reported value was submitted"
+  blockNumber: BigInt!
+  # generated
+  votes: [ForkVote!] @derivedFrom(field: "dispute")
 
-#   "Address of proposed implementation contract"
-#   forkAddress: Bytes!
-# }
+  "Address of proposed implementation contract"
+  forkAddress: Bytes!
+}
