@@ -46,6 +46,6 @@ dataSources:
         # - event: Voted(indexed uint256,bool,indexed address)
         #   handler: handleVoted
       callHandlers:
-        - function: beginDispute(uint256,uint256,uint256)
-          handler: handleBeginDipsute
+        - function: proposeFork(address)
+          handler: handleProposeFork
       file: ./src/mapping.ts
