@@ -37,14 +37,15 @@ dataSources:
         - event: DisputeVoteTallied(indexed uint256,int256,indexed address,address,bool)
           handler: handleDisputeVoteTallied
         # disputes
+        - event: Voted(indexed uint256,bool,indexed address)
+          handler: handleVoted
         # - event NewTellorAddress()
         #   handler: handleNewTellorAddress
         # - event NewDispute()
         #   handler: handleNewDispute
         # - event: DisputeVoteTallied(indexed uint256,int256,indexed address,address,bool)
         #   handler: handleDisputeVoteTallied
-        # - event: Voted(indexed uint256,bool,indexed address)
-        #   handler: handleVoted
+
       callHandlers:
         - function: proposeFork(address)
           handler: handleProposeFork

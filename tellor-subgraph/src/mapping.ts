@@ -8,8 +8,9 @@ import {
   StakeWithdrawRequested,
   Transfer as TransferEvent,
   Tellor,
+  Voted,
 } from '../generated/Tellor/Tellor'
-import { Block, Miner, Fork, Transaction, Transfer, Slash } from '../generated/schema'
+import { Block, Miner, Fork, Transaction, Transfer, Slash, ForkVote, SlashVote } from '../generated/schema'
 import { createBlock, createTransaction, createId, BIGINT_ZERO, stringToUTF8 } from './utils'
 import { ByteArray, crypto, Bytes, log, Address } from '@graphprotocol/graph-ts'
 
@@ -19,24 +20,43 @@ import { ByteArray, crypto, Bytes, log, Address } from '@graphprotocol/graph-ts'
 // DisputeVoteTallied
 // Voted
 
-export function handleVoted(): void {
-  // {
-  //   "indexed": true,
-  //   "internalType": "uint256",
-  //   "name": "_disputeID",
-  //   "type": "uint256"
-  // },
-  // {
-  //   "indexed": false,
-  //   "internalType": "bool",
-  //   "name": "_position",
-  //   "type": "bool"
-  // },
-  // {
-  //   "indexed": true,
-  //   "internalType": "address",
-  //   "name": "_voter",
-  //   "type
+export function handleVoted(event: Voted): void {
+  // bind to contract to read the state
+  let contract = Tellor.bind(event.address) // TODO: check that this is valid call.to
+
+  let block = createBlock(event.block)
+  let transaction = createTransaction(event.transaction, event.block)
+
+  let disputeId = event.params._disputeID
+  let id = disputeId.toString() + '-' + event.params._voter.toHexString()
+
+  let voter = event.params._voter
+
+  let params = contract.getAllDisputeVars(disputeId)
+  let isPropFork = params.value3
+  // FIXME: this might be wrong!
+  let blockNumber = params.value7[5]
+
+  let voteWeight = contract.balanceOfAt(event.transaction.from, blockNumber)
+
+  // this dumb construct is here only cause there is no support for UNIONs
+  if (isPropFork) {
+    let vote = new ForkVote(id)
+    vote.id = id
+    vote.voter = voter
+    vote.vote = voteWeight
+    vote.transaction = transaction.id
+    vote.dispute = disputeId.toString()
+    vote.save()
+  } else {
+    let vote = new SlashVote(id)
+    vote.id = id
+    vote.voter = voter
+    vote.vote = voteWeight
+    vote.transaction = transaction.id
+    vote.dispute = disputeId.toString()
+    vote.save()
+  }
 }
 
 // MINERS
