@@ -11,18 +11,17 @@ import {
   Voted,
 } from '../generated/Tellor/Tellor'
 import { Block, Miner, Fork, Transaction, Transfer, Slash, ForkVote, SlashVote } from '../generated/schema'
-import { createBlock, createTransaction, createId, BIGINT_ZERO, stringToUTF8 } from './utils'
-import { ByteArray, crypto, Bytes, log, Address } from '@graphprotocol/graph-ts'
+import { createBlock, createTransaction, createId, BIGINT_ZERO, stringToUTF8, BIGINT_ONE } from './utils'
+import { ByteArray, crypto, Bytes, log, Address, BigInt } from '@graphprotocol/graph-ts'
 
 // DISPUTES
-// NewTellorAddress
 // NewDispute
 // DisputeVoteTallied
 // Voted
 
 export function handleVoted(event: Voted): void {
   // bind to contract to read the state
-  let contract = Tellor.bind(event.address) // TODO: check that this is valid call.to
+  let contract = Tellor.bind(event.address)
 
   let block = createBlock(event.block)
   let transaction = createTransaction(event.transaction, event.block)
@@ -31,10 +30,10 @@ export function handleVoted(event: Voted): void {
   let id = disputeId.toString() + '-' + event.params._voter.toHexString()
 
   let voter = event.params._voter
+  let sign: BigInt = event.params._position ? BIGINT_ONE : BIGINT_ONE.neg()
 
   let params = contract.getAllDisputeVars(disputeId)
   let isPropFork = params.value3
-  // FIXME: this might be wrong!
   let blockNumber = params.value7[5]
 
   let voteWeight = contract.balanceOfAt(event.transaction.from, blockNumber)
@@ -44,7 +43,7 @@ export function handleVoted(event: Voted): void {
     let vote = new ForkVote(id)
     vote.id = id
     vote.voter = voter
-    vote.vote = voteWeight
+    vote.vote = voteWeight.times(sign)
     vote.transaction = transaction.id
     vote.dispute = disputeId.toString()
     vote.save()
@@ -52,7 +51,7 @@ export function handleVoted(event: Voted): void {
     let vote = new SlashVote(id)
     vote.id = id
     vote.voter = voter
-    vote.vote = voteWeight
+    vote.vote = voteWeight.times(sign)
     vote.transaction = transaction.id
     vote.dispute = disputeId.toString()
     vote.save()
