@@ -161,8 +161,6 @@ type Slash implements Dispute @entity {
   minerSlot: BigInt!
 }
 
-# TODO: this part is not supported yet cause there is a bug
-# in the contract => proposeFork doesn't emit newDispute event
 type ForkVote implements Vote @entity {
   "Equals to: <Dispute ID>-<Voter's address>"
   id: ID!
