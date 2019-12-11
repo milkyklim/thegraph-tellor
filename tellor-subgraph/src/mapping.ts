@@ -36,7 +36,7 @@ export function handleVoted(event: Voted): void {
   let isPropFork = params.value3
   let blockNumber = params.value7[5]
 
-  let voteWeight = contract.balanceOfAt(event.transaction.from, blockNumber)
+  let voteWeight = contract.balanceOfAt(event.params._voter, blockNumber)
 
   // this dumb construct is here only cause there is no support for UNIONs
   if (isPropFork) {
@@ -64,7 +64,7 @@ export function handleNewStake(event: NewStake): void {
   let block = createBlock(event.block)
   let transaction = createTransaction(event.transaction, event.block)
 
-  let id = event.params._sender.toHex()
+  let id = event.params._sender.toHexString()
   let miner = new Miner(id)
   miner.transaction = transaction.id
   miner.status = 'STAKED'
@@ -80,8 +80,9 @@ export function handleStakeWithdrawn(event: StakeWithdrawn): void {
   let block = createBlock(event.block)
   let transaction = createTransaction(event.transaction, event.block)
 
-  let id = event.params._sender.toHex()
+  let id = event.params._sender.toHexString()
   let miner = Miner.load(id)
+  // should never fail
   if (miner != null) {
     miner.transaction = transaction.id
     miner.status = 'NOT_STAKED'
@@ -97,8 +98,9 @@ export function handleStakeWithdrawRequested(event: StakeWithdrawRequested): voi
   let block = createBlock(event.block)
   let transaction = createTransaction(event.transaction, event.block)
 
-  let id = event.params._sender.toHex()
+  let id = event.params._sender.toHexString()
   let miner = Miner.load(id)
+  // should never fail
   if (miner != null) {
     miner.transaction = transaction.id
     miner.status = 'LOCKED_FOR_WITHDRAW'
@@ -117,9 +119,9 @@ export function handleNewDispute(event: NewDispute): void {
   let block = createBlock(event.block)
   let transaction = createTransaction(event.transaction, event.block)
 
-  let id = event.params._miner.toHex()
+  let id = event.params._miner.toHexString()
   let miner = Miner.load(id)
-  // TODO: should never be the case
+  // should never fail
   if (miner != null) {
     miner.transaction = transaction.id
     miner.status = 'ON_DISPUTE'
@@ -136,7 +138,7 @@ export function handleNewDispute(event: NewDispute): void {
   let slash = new Slash(disputeId.toString())
 
   slash.finalized = false
-  slash.reporter = event.transaction.from.toHex()
+  slash.reporter = event.transaction.from
   slash.suspect = id
   slash.requestId = event.params._requestId
   slash.timestamp = event.params._timestamp
@@ -156,9 +158,9 @@ export function handleDisputeVoteTallied(event: DisputeVoteTallied): void {
   let block = createBlock(event.block)
   let transaction = createTransaction(event.transaction, event.block)
 
-  let id = event.params._reportedMiner.toHex()
+  let id = event.params._reportedMiner.toHexString()
   let miner = Miner.load(id)
-  // TODO: should never be the case
+  // should never fail
   if (miner != null) {
     miner.transaction = transaction.id
     if (event.params._active) {
@@ -183,9 +185,9 @@ export function handleProposeFork(call: ProposeForkCall): void {
   let block = createBlock(call.block)
   let transaction = createTransaction(call.transaction, call.block)
 
-  let id = call.transaction.from.toHex()
-  let miner = Miner.load(id)
-  // TODO: should never be the case
+  let id = call.transaction.from
+  let miner = Miner.load(id.toHexString())
+  // should never fail
   if (miner != null) {
     miner.transaction = transaction.id
     miner.status = 'ON_DISPUTE'
@@ -201,7 +203,7 @@ export function handleProposeFork(call: ProposeForkCall): void {
 
   fork.finalized = false
   fork.reporter = id
-  fork.suspect = id
+  fork.suspect = id.toHexString()
 
   fork.forkAddress = call.inputs._propNewTellorAddress
 
