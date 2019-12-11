@@ -96,7 +96,7 @@ interface Dispute {
   "Whether the dispute ended in favor of Reporter or Suspect"
   winner: DisputeRole # can be null if not finished
   "Reporter who opened the dispute"
-  reporter: Miner!
+  reporter: Bytes! # Miner! can be a normal user
   "The miner who is disputed (self in case of fork)"
   suspect: Miner!
   "Reporter deposit"
@@ -138,7 +138,7 @@ type Slash implements Dispute @entity {
   "Whether the dispute ended in favor of Reporter or Suspect"
   winner: DisputeRole # can be null if not finished
   "Reporter who opened the dispute"
-  reporter: Miner!
+  reporter: Bytes! # Miner! can be a normal user
   "The miner who is disputed (self in case of fork)"
   suspect: Miner!
   "Reporter deposit"
@@ -190,7 +190,7 @@ type Fork implements Dispute @entity {
   "Whether the dispute ended in favor of Reporter or Suspect"
   winner: DisputeRole # can be null if not finished
   "Reporter who opened the dispute"
-  reporter: Miner!
+  reporter: Bytes! # Miner! can be a normal user
   "The miner who is disputed (self in case of fork)"
   suspect: Miner!
   "Reporter deposit"
