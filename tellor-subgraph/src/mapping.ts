@@ -15,9 +15,6 @@ import { createBlock, createTransaction, createId, BIGINT_ZERO, stringToUTF8, BI
 import { ByteArray, crypto, Bytes, log, Address, BigInt } from '@graphprotocol/graph-ts'
 
 // DISPUTES
-// NewDispute
-// DisputeVoteTallied
-// Voted
 
 export function handleVoted(event: Voted): void {
   // bind to contract to read the state
@@ -46,6 +43,12 @@ export function handleVoted(event: Voted): void {
     vote.vote = voteWeight.times(sign)
     vote.transaction = transaction.id
     vote.dispute = disputeId.toString()
+
+    let fork = Fork.load(disputeId.toString())
+    fork.quorum = fork.quorum.plus(voteWeight)
+    fork.tally = fork.tally.plus(voteWeight.times(sign))
+    fork.save()
+
     vote.save()
   } else {
     let vote = new SlashVote(id)
@@ -54,6 +57,12 @@ export function handleVoted(event: Voted): void {
     vote.vote = voteWeight.times(sign)
     vote.transaction = transaction.id
     vote.dispute = disputeId.toString()
+
+    let slash = Slash.load(disputeId.toString())
+    slash.quorum = slash.quorum.plus(voteWeight)
+    slash.tally = slash.tally.plus(voteWeight.times(sign))
+    slash.save()
+
     vote.save()
   }
 }
@@ -148,6 +157,10 @@ export function handleNewDispute(event: NewDispute): void {
   slash.blockNumber = contract.getDisputeUintVars(disputeId, crypto.keccak256(stringToUTF8('blockNumber')) as Bytes)
   slash.value = contract.getDisputeUintVars(disputeId, crypto.keccak256(stringToUTF8('value')) as Bytes)
   slash.minerSlot = contract.getDisputeUintVars(disputeId, crypto.keccak256(stringToUTF8('minerSlot')) as Bytes)
+
+  slash.quorum = BIGINT_ZERO
+  slash.tally = BIGINT_ZERO
+
   // not decided yet
   slash.winner = null
 
@@ -155,6 +168,9 @@ export function handleNewDispute(event: NewDispute): void {
 }
 
 export function handleDisputeVoteTallied(event: DisputeVoteTallied): void {
+  // bind to contract to read the state
+  let contract = Tellor.bind(event.address)
+
   let block = createBlock(event.block)
   let transaction = createTransaction(event.transaction, event.block)
 
@@ -174,8 +190,22 @@ export function handleDisputeVoteTallied(event: DisputeVoteTallied): void {
     transaction.save()
     miner.save()
   }
+  let disputeId = event.params._disputeID
+  let params = contract.getAllDisputeVars(disputeId)
+  let isPropFork = params.value3
 
-  // TODO: probably add logic to track voting here
+  // this dumb construct is here only cause there is no support for UNIONs
+  if (isPropFork) {
+    let fork = Fork.load(disputeId.toString())
+    fork.finalized = true
+    fork.winner = fork.tally.gt(BIGINT_ZERO) ? 'REPORTER' : 'SUSPECT'
+    fork.save()
+  } else {
+    let slash = Slash.load(disputeId.toString())
+    slash.finalized = true
+    slash.winner = slash.tally.gt(BIGINT_ZERO) ? 'REPORTER' : 'SUSPECT'
+    slash.save()
+  }
 }
 
 export function handleProposeFork(call: ProposeForkCall): void {
@@ -210,6 +240,9 @@ export function handleProposeFork(call: ProposeForkCall): void {
   fork.fee = contract.getDisputeUintVars(disputeId, crypto.keccak256(stringToUTF8('fee')) as Bytes)
   fork.endDate = contract.getDisputeUintVars(disputeId, crypto.keccak256(stringToUTF8('minExecutionDate')) as Bytes)
   fork.blockNumber = contract.getDisputeUintVars(disputeId, crypto.keccak256(stringToUTF8('blockNumber')) as Bytes)
+
+  fork.quorum = BIGINT_ZERO
+  fork.tally = BIGINT_ZERO
 
   fork.save()
 }
