@@ -22,8 +22,8 @@ type Transfer @entity {
 }
 
 enum DisputeRole {
-  Reporter
-  Suspect
+  REPORTER
+  SUSPECT
 }
 
 enum MinerStatus {
@@ -107,6 +107,13 @@ interface Dispute {
   # Voting power comes from balance snapshot at this block
   "Block number when the reported value was submitted"
   blockNumber: BigInt!
+
+  "Difference of votes for and against"
+  tally: BigInt!
+  "Sum of votes for and against"
+  quorum: BigInt!
+  # in tributes
+
   # generated
   # votes: [Vote!] @derivedFrom(field: "dispute")
 
@@ -118,11 +125,6 @@ interface Dispute {
   # yesVotes: BigInt!
   # in tributes
   # noVotes: BigInt!
-  #"Difference of votes for and against"
-  # tally: BigInt!
-  #"Sum of votes for and against"
-  # quorum: BigInt!
-  # in tributes
 }
 
 type Slash implements Dispute @entity {
@@ -149,6 +151,13 @@ type Slash implements Dispute @entity {
   # Voting power comes from balance snapshot at this block
   "Block number when the reported value was submitted"
   blockNumber: BigInt!
+
+  "Difference of votes for and against"
+  tally: BigInt!
+  "Sum of votes for and against"
+  quorum: BigInt!
+  # in tributes
+
   # generated
   votes: [SlashVote!] @derivedFrom(field: "dispute")
   "Request id of the disputed value"
@@ -201,6 +210,13 @@ type Fork implements Dispute @entity {
   # Voting power comes from balance snapshot at this block
   "Block number when the reported value was submitted"
   blockNumber: BigInt!
+
+  "Difference of votes for and against"
+  tally: BigInt!
+  "Sum of votes for and against"
+  quorum: BigInt!
+  # in tributes
+
   # generated
   votes: [ForkVote!] @derivedFrom(field: "dispute")
 
