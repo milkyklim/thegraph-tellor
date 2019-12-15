@@ -1,5 +1,5 @@
 import { BigInt, Bytes, EthereumBlock, EthereumTransaction } from '@graphprotocol/graph-ts'
-import { Block, Miner, Transaction as TransactionEvent, Transfer, Transaction } from '../generated/schema'
+import { Block, Transaction as TransactionEvent, Transfer, Transaction } from '../generated/schema'
 import { ByteArray } from '@graphprotocol/graph-ts'
 
 // make a number the specified number of digits
