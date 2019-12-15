@@ -1,5 +1,4 @@
 import {
-  BeginDisputeCall,
   DisputeVoteTallied,
   NewDispute,
   NewStake,
@@ -10,11 +9,9 @@ import {
   Tellor,
   Voted,
 } from '../generated/Tellor/Tellor'
-import { Block, Miner, Fork, Transaction, Transfer, Slash, ForkVote, SlashVote } from '../generated/schema'
+import { Block, Miner, Fork, Transfer, Slash, ForkVote, SlashVote } from '../generated/schema'
 import { createBlock, createTransaction, createId, BIGINT_ZERO, stringToUTF8, BIGINT_ONE } from './utils'
-import { ByteArray, crypto, Bytes, log, Address, BigInt } from '@graphprotocol/graph-ts'
-
-// DISPUTES
+import { crypto, Bytes, BigInt } from '@graphprotocol/graph-ts'
 
 export function handleVoted(event: Voted): void {
   // bind to contract to read the state
@@ -35,7 +32,12 @@ export function handleVoted(event: Voted): void {
 
   let voteWeight = contract.balanceOfAt(event.params._voter, blockNumber)
 
-  // this dumb construct is here only cause there is no support for UNIONs
+  if (Block.load(block.id) == null) {
+    block.save()
+  }
+  transaction.save()
+
+  // IMP: this if .. else is here only cause there is no support for Union
   if (isPropFork) {
     let vote = new ForkVote(id)
     vote.id = id
@@ -67,8 +69,6 @@ export function handleVoted(event: Voted): void {
   }
 }
 
-// MINERS
-
 export function handleNewStake(event: NewStake): void {
   let block = createBlock(event.block)
   let transaction = createTransaction(event.transaction, event.block)
@@ -91,16 +91,13 @@ export function handleStakeWithdrawn(event: StakeWithdrawn): void {
 
   let id = event.params._sender.toHexString()
   let miner = Miner.load(id)
-  // should never fail
-  if (miner != null) {
-    miner.transaction = transaction.id
-    miner.status = 'NOT_STAKED'
-    if (Block.load(block.id) == null) {
-      block.save()
-    }
-    transaction.save()
-    miner.save()
+  miner.transaction = transaction.id
+  miner.status = 'NOT_STAKED'
+  if (Block.load(block.id) == null) {
+    block.save()
   }
+  transaction.save()
+  miner.save()
 }
 
 export function handleStakeWithdrawRequested(event: StakeWithdrawRequested): void {
@@ -109,16 +106,13 @@ export function handleStakeWithdrawRequested(event: StakeWithdrawRequested): voi
 
   let id = event.params._sender.toHexString()
   let miner = Miner.load(id)
-  // should never fail
-  if (miner != null) {
-    miner.transaction = transaction.id
-    miner.status = 'LOCKED_FOR_WITHDRAW'
-    if (Block.load(block.id) == null) {
-      block.save()
-    }
-    transaction.save()
-    miner.save()
+  miner.transaction = transaction.id
+  miner.status = 'LOCKED_FOR_WITHDRAW'
+  if (Block.load(block.id) == null) {
+    block.save()
   }
+  transaction.save()
+  miner.save()
 }
 
 export function handleNewDispute(event: NewDispute): void {
@@ -130,18 +124,13 @@ export function handleNewDispute(event: NewDispute): void {
 
   let id = event.params._miner.toHexString()
   let miner = Miner.load(id)
-  // should never fail
-  if (miner != null) {
-    miner.transaction = transaction.id
-    miner.status = 'ON_DISPUTE'
-    if (Block.load(block.id) == null) {
-      block.save()
-    }
-    transaction.save()
-    miner.save()
+  miner.transaction = transaction.id
+  miner.status = 'ON_DISPUTE'
+  if (Block.load(block.id) == null) {
+    block.save()
   }
-
-  // slash disputes logic here
+  transaction.save()
+  miner.save()
 
   let disputeId = event.params._disputeId
   let slash = new Slash(disputeId.toString())
@@ -151,6 +140,7 @@ export function handleNewDispute(event: NewDispute): void {
   slash.suspect = id
   slash.requestId = event.params._requestId
   slash.timestamp = event.params._timestamp
+
   // restore values from storage
   slash.fee = contract.getDisputeUintVars(disputeId, crypto.keccak256(stringToUTF8('fee')) as Bytes)
   slash.endDate = contract.getDisputeUintVars(disputeId, crypto.keccak256(stringToUTF8('minExecutionDate')) as Bytes)
@@ -176,25 +166,23 @@ export function handleDisputeVoteTallied(event: DisputeVoteTallied): void {
 
   let id = event.params._reportedMiner.toHexString()
   let miner = Miner.load(id)
-  // should never fail
-  if (miner != null) {
-    miner.transaction = transaction.id
-    if (event.params._active) {
-      miner.status = 'NOT_STAKED'
-    } else {
-      miner.status = 'STAKED'
-    }
-    if (Block.load(block.id) == null) {
-      block.save()
-    }
-    transaction.save()
-    miner.save()
+  miner.transaction = transaction.id
+  if (event.params._active) {
+    miner.status = 'NOT_STAKED'
+  } else {
+    miner.status = 'STAKED'
   }
+  if (Block.load(block.id) == null) {
+    block.save()
+  }
+  transaction.save()
+  miner.save()
+
   let disputeId = event.params._disputeID
   let params = contract.getAllDisputeVars(disputeId)
   let isPropFork = params.value3
 
-  // this dumb construct is here only cause there is no support for UNIONs
+  // IMP: this if .. else is here only cause there is no support for Union
   if (isPropFork) {
     let fork = Fork.load(disputeId.toString())
     fork.finalized = true
@@ -210,23 +198,20 @@ export function handleDisputeVoteTallied(event: DisputeVoteTallied): void {
 
 export function handleProposeFork(call: ProposeForkCall): void {
   // bind to contract to read the state
-  let contract = Tellor.bind(call.to) // TODO: check that this is valid call.to
+  let contract = Tellor.bind(call.to)
 
   let block = createBlock(call.block)
   let transaction = createTransaction(call.transaction, call.block)
 
   let id = call.transaction.from
   let miner = Miner.load(id.toHexString())
-  // should never fail
-  if (miner != null) {
-    miner.transaction = transaction.id
-    miner.status = 'ON_DISPUTE'
-    if (Block.load(block.id) == null) {
-      block.save()
-    }
-    transaction.save()
-    miner.save()
+  miner.transaction = transaction.id
+  miner.status = 'ON_DISPUTE'
+  if (Block.load(block.id) == null) {
+    block.save()
   }
+  transaction.save()
+  miner.save()
 
   let disputeId = contract.getUintVar(crypto.keccak256(stringToUTF8('disputeCount')) as Bytes)
   let fork = new Fork(disputeId.toString())
@@ -246,8 +231,6 @@ export function handleProposeFork(call: ProposeForkCall): void {
 
   fork.save()
 }
-
-// TRANSFERS
 
 export function handleTransfer(event: TransferEvent): void {
   let block = createBlock(event.block)

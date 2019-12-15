@@ -10,7 +10,7 @@ dataSources:
     source:
       address: '0x0Ba45A8b5d5575935B8158a88C631E9F9C95a2e5'
       abi: Tellor
-      startBlock: 8265522 # 8520520
+      startBlock: 8265522
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.3
@@ -22,8 +22,8 @@ dataSources:
           file: ./abis/Tellor.json
       eventHandlers:
         # transfers
-        # - event: Transfer(indexed address,indexed address,uint256)
-        #   handler: handleTransfer
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
         # miners
         - event: NewStake(indexed address)
           handler: handleNewStake
@@ -39,12 +39,6 @@ dataSources:
         # disputes
         - event: Voted(indexed uint256,bool,indexed address)
           handler: handleVoted
-        # - event NewTellorAddress()
-        #   handler: handleNewTellorAddress
-        # - event NewDispute()
-        #   handler: handleNewDispute
-        # - event: DisputeVoteTallied(indexed uint256,int256,indexed address,address,bool)
-        #   handler: handleDisputeVoteTallied
 
       callHandlers:
         - function: proposeFork(address)
