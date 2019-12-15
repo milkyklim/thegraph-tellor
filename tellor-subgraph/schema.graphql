@@ -36,34 +36,22 @@ enum MinerStatus {
 type Miner @entity {
   "Address"
   id: ID!
-  "Last transaction info"
+  "Last status change transaction"
   transaction: Transaction!
   # NOT_STAKED, STAKED, LOCKED_FOR_WITHDRAW, ON_DISPUTE,
   status: MinerStatus!
 }
-
-# TODO: check if challenge is really necessary in the graph
-# type Challenge @entity {
-#   id: ID!
-#   requestId: Int!
-#   difficulty: BigInt!
-
-#   # new challenge
-#   # {"_query": "PSR", "_totalTips": 0, "_difficulty": 1, "_multiplier": 1000, "_currentChallenge": "0x8cab0bdd9c3d94601e55d537314fd6d2cb881fc8343307296845f7a385f6fd9a", "_currentRequestId": 1}
-#   # nonce submitted
-#   # {"_miner": "0x4c49172A499D18eA3093D59A304eEF63F9754e25", "_nonce": "8731235", "_value": 221000, "_requestId": 1, "_currentChallenge": "0x8cab0bdd9c3d94601e55d537314fd6d2cb881fc8343307296845f7a385f6fd9a"}
-# }
 
 interface Vote {
   "Equals to: <Dispute ID>-<Voter's address>"
   id: ID!
   "Voters's address"
   voter: Bytes!
-  "Vote in the dispute"
+  "Vote in the dispute (in TRB)"
   vote: BigInt!
   "Transaction info"
   transaction: Transaction!
-  # TODO: this can be extended with 'union' but it is not supported yet
+  # IMP: this can be extended with 'Union' but it is not supported yet
   # "Dispute related to this vote"
   # dispute: Dispute!
 }
@@ -73,101 +61,12 @@ type SlashVote implements Vote @entity {
   id: ID!
   "Voters's address"
   voter: Bytes!
-  "Vote in the dispute"
+  "Vote in the dispute (in TRB)"
   vote: BigInt!
   "Transaction info"
   transaction: Transaction!
-
-  # "Dispute related to this vote"
+  "Dispute related to this vote"
   dispute: Slash!
-}
-
-# aka Voting
-interface Dispute {
-  # "Dispute id"
-  "Actual dispute id in smart contract"
-  id: ID!
-  # "Actual dispute id in smart contract"
-  # disputeId: BigInt!
-  # "Dispute hash: keccak256(miner+request_id+timestamp)"
-  # hash: Bytes!
-  "Whether the dispute has been finalized"
-  finalized: Boolean!
-  "Whether the dispute ended in favor of Reporter or Suspect"
-  winner: DisputeRole # can be null if not finished
-  "Reporter who opened the dispute"
-  reporter: Bytes! # Miner! can be a normal user
-  "The miner who is disputed (self in case of fork)"
-  suspect: Miner!
-  "Reporter deposit"
-  fee: BigInt!
-  # Disputes last for exactly 7 days
-  "Date when votes can be tallied"
-  endDate: BigInt!
-  # Voting power comes from balance snapshot at this block
-  "Block number when the reported value was submitted"
-  blockNumber: BigInt!
-
-  "Difference of votes for and against"
-  tally: BigInt!
-  "Sum of votes for and against"
-  quorum: BigInt!
-  # in tributes
-
-  # generated
-  # votes: [Vote!] @derivedFrom(field: "dispute")
-
-  # FIXME: everything below can be generated
-  # TODO: should be derived mutation
-  #"Number of votes"
-  # numberOfVotes: BigInt!
-  # in tributes
-  # yesVotes: BigInt!
-  # in tributes
-  # noVotes: BigInt!
-}
-
-type Slash implements Dispute @entity {
-  # "Dispute id"
-  "Actual dispute id in smart contract"
-  id: ID!
-  # "Actual dispute id in smart contract"
-  # disputeId: BigInt!
-  # "Dispute hash: keccak256(miner+request_id+timestamp)"
-  # hash: Bytes!
-  "Whether the dispute has been finalized"
-  finalized: Boolean!
-  "Whether the dispute ended in favor of Reporter or Suspect"
-  winner: DisputeRole # can be null if not finished
-  "Reporter who opened the dispute"
-  reporter: Bytes! # Miner! can be a normal user
-  "The miner who is disputed (self in case of fork)"
-  suspect: Miner!
-  "Reporter deposit"
-  fee: BigInt!
-  # Disputes last for exactly 7 days
-  "Date when votes can be tallied"
-  endDate: BigInt!
-  # Voting power comes from balance snapshot at this block
-  "Block number when the reported value was submitted"
-  blockNumber: BigInt!
-
-  "Difference of votes for and against"
-  tally: BigInt!
-  "Sum of votes for and against"
-  quorum: BigInt!
-  # in tributes
-
-  # generated
-  votes: [SlashVote!] @derivedFrom(field: "dispute")
-  "Request id of the disputed value"
-  requestId: BigInt!
-  "Timestamp of the disputed value"
-  timestamp: BigInt!
-  "Disputed value submitted by the miner"
-  value: BigInt!
-  "Miner slot where the disputed value is located"
-  minerSlot: BigInt!
 }
 
 type ForkVote implements Vote @entity {
@@ -179,28 +78,23 @@ type ForkVote implements Vote @entity {
   vote: BigInt!
   "Transaction info"
   transaction: Transaction!
-
-  # "Dispute related to this vote"
+  "Dispute related to this vote"
   dispute: Fork!
 }
 
-# TODO: this part is not supported yet cause there is a bug
-# in the contract => proposeFork doesn't emit newDispute event
-type Fork implements Dispute @entity {
-  # "Dispute id"
-  "Actual dispute id in smart contract"
+# aka Voting
+interface Dispute {
+  "Dispute id (matches one in smart contract)"
   id: ID!
-  # "Actual dispute id in smart contract"
-  # disputeId: BigInt!
-  # "Dispute hash: keccak256(miner+request_id+timestamp)"
+  # "Dispute hash"
   # hash: Bytes!
   "Whether the dispute has been finalized"
   finalized: Boolean!
   "Whether the dispute ended in favor of Reporter or Suspect"
   winner: DisputeRole # can be null if not finished
-  "Reporter who opened the dispute"
-  reporter: Bytes! # Miner! can be a normal user
-  "The miner who is disputed (self in case of fork)"
+  "User who opened the dispute"
+  reporter: Bytes!
+  "Miner who is disputed (self in case of fork)"
   suspect: Miner!
   "Reporter deposit"
   fee: BigInt!
@@ -210,12 +104,79 @@ type Fork implements Dispute @entity {
   # Voting power comes from balance snapshot at this block
   "Block number when the reported value was submitted"
   blockNumber: BigInt!
-
   "Difference of votes for and against"
   tally: BigInt!
   "Sum of votes for and against"
   quorum: BigInt!
-  # in tributes
+
+  # IMP: this can be extended with 'Union' but it is not supported yet
+  # votes: [Vote!] @derivedFrom(field: "dispute")
+}
+
+type Slash implements Dispute @entity {
+  "Dispute id (matches one in smart contract)"
+  id: ID!
+  # "Dispute hash: keccak256(miner+request_id+timestamp)"
+  # hash: Bytes!
+  "Whether the dispute has been finalized"
+  finalized: Boolean!
+  "Whether the dispute ended in favor of Reporter or Suspect"
+  winner: DisputeRole # can be null if not finished
+  "User who opened the dispute"
+  reporter: Bytes!
+  "Miner who is disputed (self in case of fork)"
+  suspect: Miner!
+  "Reporter deposit"
+  fee: BigInt!
+  # Disputes last for exactly 7 days
+  "Date when votes can be tallied"
+  endDate: BigInt!
+  # Voting power comes from balance snapshot at this block
+  "Block number when the reported value was submitted"
+  blockNumber: BigInt!
+  "Difference of votes for and against"
+  tally: BigInt!
+  "Sum of votes for and against"
+  quorum: BigInt!
+
+  # generated
+  votes: [SlashVote!] @derivedFrom(field: "dispute")
+
+  "Request id of the disputed value"
+  requestId: BigInt!
+  "Timestamp of the disputed value"
+  timestamp: BigInt!
+  "Disputed value submitted by the miner"
+  value: BigInt!
+  "Miner slot where the disputed value is located"
+  minerSlot: BigInt!
+}
+
+type Fork implements Dispute @entity {
+  "Dispute id (matches one in smart contract)"
+  id: ID!
+  # "Dispute hash: keccak256(forkAddress)"
+  # hash: Bytes!
+  "Whether the dispute has been finalized"
+  finalized: Boolean!
+  "Whether the dispute ended in favor of Reporter or Suspect"
+  winner: DisputeRole # can be null if not finished
+  "User who opened the dispute"
+  reporter: Bytes!
+  "Miner who is disputed (self in case of fork)"
+  suspect: Miner!
+  "Reporter deposit"
+  fee: BigInt!
+  # Disputes last for exactly 7 days
+  "Date when votes can be tallied"
+  endDate: BigInt!
+  # Voting power comes from balance snapshot at this block
+  "Block number when the reported value was submitted"
+  blockNumber: BigInt!
+  "Difference of votes for and against"
+  tally: BigInt!
+  "Sum of votes for and against"
+  quorum: BigInt!
 
   # generated
   votes: [ForkVote!] @derivedFrom(field: "dispute")
