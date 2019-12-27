@@ -1,0 +1,15 @@
+# return info on all dropped miners
+query DroppedtMiners {
+  miners(where: { status_not: STAKED }) {
+    id
+    status
+    transaction {
+      id
+      block {
+        id
+        number
+        timestamp
+      }
+    }
+  }
+}

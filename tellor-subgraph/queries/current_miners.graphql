@@ -1,0 +1,15 @@
+# return info on all current miners
+query CurrentMiners {
+  miners(where: { status: STAKED }) {
+    id
+    status
+    transaction {
+      id
+      block {
+        id
+        number
+        timestamp
+      }
+    }
+  }
+}
