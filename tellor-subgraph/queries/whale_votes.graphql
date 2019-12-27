@@ -1,0 +1,13 @@
+# return votes that are at least 1000 TRB large
+query WhaleVotes {
+  for: votes(where: { vote_gte: 1000000000000000000 }) {
+    id
+    voter
+    vote
+  }
+  against: votes(where: { vote_lte: -1000000000000000000 }) {
+    id
+    voter
+    vote
+  }
+}

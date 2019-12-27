@@ -1,0 +1,25 @@
+# return full stats on slash 16
+query Slash16 {
+  slash(id: 16) {
+    id
+    reporter
+    suspect {
+      id
+    }
+    fee
+    endDate
+    blockNumber
+    tally
+    quorum
+    votes {
+      id
+      voter
+      vote
+    }
+    requestId
+    timestamp
+    value
+    minerSlot
+    winner
+  }
+}

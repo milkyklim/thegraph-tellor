@@ -1,0 +1,34 @@
+# return info on all finalized slashes
+query FinalizedSlashes {
+  slashes(where: { finalized: true }) {
+    id
+    reporter
+    suspect {
+      id
+      status
+    }
+    fee
+    endDate
+    blockNumber
+    tally
+    quorum
+    votes {
+      id
+      voter
+      vote
+      transaction {
+        id
+        block {
+          id
+          number
+          timestamp
+        }
+      }
+    }
+    requestId
+    timestamp
+    value
+    minerSlot
+    winner
+  }
+}
