@@ -39,7 +39,11 @@ dataSources:
         # disputes
         - event: Voted(indexed uint256,bool,indexed address)
           handler: handleVoted
-
+        # challenges
+        - event: NewChallenge(bytes32,indexed uint256,uint256,uint256,string,uint256)
+          handler: handleNewChallenge
+        - event: NonceSubmitted(indexed address,string,indexed uint256,uint256,bytes32)
+          handler: handleNonceSubmitted
       callHandlers:
         - function: proposeFork(address)
           handler: handleProposeFork
