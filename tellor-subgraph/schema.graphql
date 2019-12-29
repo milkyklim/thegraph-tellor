@@ -37,11 +37,11 @@ type Solution @entity {
   "Equals to: <Challenge ID>-<Miner's address>"
   id: ID!
   "One who submitted solution"
-  miner: Miner! # < _miner
+  miner: Miner!
   "Nonce found"
-  nonce: String! # < _nonce
+  nonce: String!
   "Value / exchange rate"
-  value: BigInt! # < _value
+  value: BigInt!
   "Chanllenge related to this solution"
   challenge: Challenge!
 }
@@ -50,16 +50,16 @@ type Challenge @entity {
   "Challenge id (matches _currentChallenge)"
   id: ID!
   "API id being mined"
-  requestId: BigInt! # < _currentRequestId
+  requestId: BigInt!
   "Network difficulty"
-  difficulty: BigInt! # < _difficulty
+  difficulty: BigInt!
   "Value / exchange rate granularity"
-  multiplier: BigInt! # < _multiplier
+  multiplier: BigInt!
   "Bonus portion of payout (in TRB)"
-  totalTips: BigInt! # < _totalTips
+  totalTips: BigInt!
   # keccak256(sapi+granularity)
   "Hash of api string and granularity"
-  query: String! # < _query
+  query: String!
   solutions: [Solution!] @derivedFrom(field: "challenge")
 }
 

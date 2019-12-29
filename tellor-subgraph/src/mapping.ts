@@ -11,7 +11,7 @@ import {
   Tellor,
   Voted,
 } from '../generated/Tellor/Tellor'
-import { Block, Miner, Fork, Transfer, Slash, ForkVote, SlashVote } from '../generated/schema'
+import { Block, Challenge, Miner, Fork, Transfer, Slash, ForkVote, SlashVote, Solution } from '../generated/schema'
 import { createBlock, createTransaction, createId, BIGINT_ZERO, stringToUTF8, BIGINT_ONE } from './utils'
 import { crypto, Bytes, BigInt } from '@graphprotocol/graph-ts'
 
@@ -253,9 +253,26 @@ export function handleTransfer(event: TransferEvent): void {
 }
 
 export function handleNewChallenge(event: NewChallenge): void {
-  // TODO:
+  let id = event.params._currentChallenge.toHexString()
+  let challenge = new Challenge(id)
+
+  challenge.requestId = event.params._currentRequestId
+  challenge.difficulty = event.params._difficulty
+  challenge.multiplier = event.params._multiplier
+  challenge.totalTips = BIGINT_ZERO
+  challenge.query = event.params._query
+
+  challenge.save()
 }
 
 export function handleNonceSubmitted(event: NonceSubmitted): void {
-  // TODO:
+  let id = event.params._currentChallenge.toHexString() + '-' + event.params._miner.toHexString()
+  let solution = new Solution(id)
+
+  solution.miner = event.params._miner.toHexString()
+  solution.nonce = event.params._nonce
+  solution.value = event.params._value
+  solution.challenge = event.params._currentChallenge.toHexString()
+
+  solution.save()
 }
