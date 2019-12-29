@@ -1,7 +1,9 @@
 import {
   DisputeVoteTallied,
   NewDispute,
+  NewChallenge,
   NewStake,
+  NonceSubmitted,
   ProposeForkCall,
   StakeWithdrawn,
   StakeWithdrawRequested,
@@ -248,4 +250,12 @@ export function handleTransfer(event: TransferEvent): void {
   }
   transaction.save()
   transfer.save()
+}
+
+export function handleNewChallenge(event: NewChallenge): void {
+  // TODO:
+}
+
+export function handleNonceSubmitted(event: NonceSubmitted): void {
+  // TODO:
 }
