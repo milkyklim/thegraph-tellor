@@ -270,7 +270,7 @@ export function handleNonceSubmitted(event: NonceSubmitted): void {
   let solution = new Solution(id)
 
   solution.miner = event.params._miner.toHexString()
-  solution.nonce = event.params._nonce
+  solution.nonce = stringToUTF8(event.params._nonce).toString()
   solution.value = event.params._value
   solution.challenge = event.params._currentChallenge.toHexString()
 
