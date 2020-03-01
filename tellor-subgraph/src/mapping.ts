@@ -7,11 +7,12 @@ import {
   ProposeForkCall,
   StakeWithdrawn,
   StakeWithdrawRequested,
+  TipAdded,
   Transfer as TransferEvent,
   Tellor,
   Voted,
 } from '../generated/Tellor/Tellor'
-import { Block, Challenge, Miner, Fork, Transfer, Slash, ForkVote, SlashVote, Solution } from '../generated/schema'
+import { Block, Challenge, Miner, Fork, Tip, Transfer, Slash, ForkVote, SlashVote, Solution } from '../generated/schema'
 import { createBlock, createTransaction, createId, BIGINT_ZERO, stringToUTF8, BIGINT_ONE } from './utils'
 import { crypto, Bytes, BigInt } from '@graphprotocol/graph-ts'
 
@@ -275,4 +276,15 @@ export function handleNonceSubmitted(event: NonceSubmitted): void {
   solution.challenge = event.params._currentChallenge.toHexString()
 
   solution.save()
+}
+
+export function handleTipAdded(event: TipAdded): void {
+  let id = createId(event.transaction.hash, event.logIndex)
+  let tip = new Tip(id)
+
+  tip.tipper = event.params._sender
+  tip.requestId = event.params._requestId
+  tip.amount = event.params._tip
+
+  tip.save()
 }

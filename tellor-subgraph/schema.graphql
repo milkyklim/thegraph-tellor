@@ -33,6 +33,26 @@ enum MinerStatus {
   ON_DISPUTE
 }
 
+type Tip @entity {
+  # FIXME:
+  # "Equals to: <Challenge ID>-<Tipper's address>"
+  "Equals to: <Log Index>-<Transaction Hash>"
+  id: ID!
+  # "name": "_sender",
+  # "type": "address"
+  tipper: Bytes!
+  # "name": "_requestId",
+  # "type": "uint256"
+  "API id being mined"
+  requestId: BigInt!
+  # "name": "_tip",
+  # "type": "uint256"
+  amount: BigInt!
+
+  # "Challenge related to this tip"
+  # challenge: Challenge!
+}
+
 type Solution @entity {
   "Equals to: <Challenge ID>-<Miner's address>"
   id: ID!
@@ -61,6 +81,7 @@ type Challenge @entity {
   "Hash of api string and granularity"
   query: String!
   solutions: [Solution!] @derivedFrom(field: "challenge")
+  # tips: [Tip!] @derivedFrom(field: "challenge")
 }
 
 type Miner @entity {
