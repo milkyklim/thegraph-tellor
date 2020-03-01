@@ -42,7 +42,7 @@ type Solution @entity {
   nonce: String!
   "Value / exchange rate"
   value: BigInt!
-  "Chanllenge related to this solution"
+  "Challenge related to this solution"
   challenge: Challenge!
 }
 
